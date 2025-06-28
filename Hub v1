@@ -563,3 +563,17 @@ CreateButton(scriptsTab, "Blue lock", function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/selciawashere/screepts/refs/heads/main/BLRTBDMOBILEKEYSYS",true))()
     Notif("Blue Lock script executado")
 end)
+-- === Aba BrookHaven Trolls ===
+local brookTab = CreateTab("BrookHaven Trolls")
+
+local targetName = "Jogador"
+
+CreateTextBox(brookTab, "Nome do Jogador", targetName, function(val)
+    targetName = tostring(val)
+    Notif("Jogador alvo definido: "..targetName)
+end)
+
+CreateButton(brookTab, "Kill (Spawn Caminhão + TP)", function()
+    local target = Players:FindFirstChild(targetName)
+    if not target or not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then
+        Notif("Jogador 
