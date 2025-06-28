@@ -1,4 +1,4 @@
--- DataBreakerZ Menu Otimizado - By DogzinGhost_YT
+isso-- DataBreakerZ Menu Otimizado - By DogzinGhost_YT
 
 -- Serviços
 local Players = game:GetService("Players")
@@ -563,17 +563,58 @@ CreateButton(scriptsTab, "Blue lock", function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/selciawashere/screepts/refs/heads/main/BLRTBDMOBILEKEYSYS",true))()
     Notif("Blue Lock script executado")
 end)
--- === Aba BrookHaven Trolls ===
-local brookTab = CreateTab("BrookHaven Trolls")
+-- === Aba BrookHaven ===
+local brookTab = CreateTab("BrookHaven")
+local flingTarget = ""
 
-local targetName = "Jogador"
-
-CreateTextBox(brookTab, "Nome do Jogador", targetName, function(val)
-    targetName = tostring(val)
-    Notif("Jogador alvo definido: "..targetName)
+-- TextBox para digitar o nome do jogador
+CreateTextBox(brookTab, "Nome do alvo (Fling)", "Jogador", function(nome)
+    flingTarget = nome
 end)
 
-CreateButton(brookTab, "Kill (Spawn Caminhão + TP)", function()
-    local target = Players:FindFirstChild(targetName)
+-- Botão Fling
+CreateButton(brookTab, "Fling", function()
+    local target = nil
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr.Name:lower():sub(1, #flingTarget) == flingTarget:lower() then
+            target = plr
+            break
+        end
+    end
+
     if not target or not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then
-        Notif("Jogador 
+        Notif("Jogador não encontrado!")
+        return
+    end
+
+    -- Cria o caminhão (modelo básico)
+    local truck = Instance.new("Model", workspace)
+    truck.Name = "FlingTruck"
+
+    local base = Instance.new("Part", truck)
+    base.Size = Vector3.new(6, 2, 12)
+    base.Position = target.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
+    base.Anchored = false
+    base.BrickColor = BrickColor.new("Really black")
+    base.Name = "TruckBase"
+
+    local body = Instance.new("BodyGyro", base)
+    body.MaxTorque = Vector3.new(400000, 400000, 400000)
+    body.P = 500000
+
+    local velocity = Instance.new("BodyVelocity", base)
+    velocity.Velocity = Vector3.new(100, 0, 100)
+    velocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+
+    -- Teleporta para o jogador e fica girando
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = player.Character.HumanoidRootPart
+        hrp.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
+        hrp.Anchored = false
+        hrp.Parent = truck
+        hrp.CFrame = base.CFrame
+        hrp.Velocity = Vector3.new(0, 0, 0)
+    end
+
+    Notif("Fling iniciado contra "..flingTarget)
+end)
