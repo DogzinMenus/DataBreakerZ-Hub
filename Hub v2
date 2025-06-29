@@ -618,3 +618,391 @@ CreateButton(brookTab, "Fling", function()
 
     Notif("Fling iniciado contra "..flingTarget)
 end)
+-- === Aba Explorer Tools ===
+local explorerTab = CreateTab("Explorer Tools")
+
+CreateButton(explorerTab, "Ver Objetos do Workspace", function()
+    for _, obj in pairs(workspace:GetChildren()) do
+        print("Objeto:", obj.Name, obj.ClassName)
+    end
+    Notif("Lista de objetos enviada ao console")
+end)
+
+CreateButton(explorerTab, "Ver RemoteEvents", function()
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("RemoteEvent") then
+            print("RemoteEvent:", v:GetFullName())
+        end
+    end
+    Notif("RemoteEvents listados no console")
+end)
+
+CreateButton(explorerTab, "Ver Scripts Locais", function()
+    for _, s in pairs(game:GetDescendants()) do
+        if s:IsA("LocalScript") then
+            print("LocalScript:", s:GetFullName())
+        end
+    end
+    Notif("LocalScripts listados")
+end)
+
+-- === Aba Camera & View ===
+local cameraTab = CreateTab("Camera & View")
+
+CreateButton(cameraTab, "Travar Câmera em Primeira Pessoa", function()
+    player.CameraMode = Enum.CameraMode.LockFirstPerson
+    Notif("Câmera travada em 1ª pessoa")
+end)
+
+CreateButton(cameraTab, "Destravar Câmera", function()
+    player.CameraMode = Enum.CameraMode.Classic
+    Notif("Câmera destravada")
+end)
+
+CreateButton(cameraTab, "Camera Zoom Máximo", function()
+    player.CameraMaxZoomDistance = 1000
+    player.CameraMinZoomDistance = 0
+    Notif("Zoom ajustado")
+end)
+
+-- === Aba World Effects ===
+local worldTab = CreateTab("World Effects")
+
+CreateButton(worldTab, "Chuva (Fake)", function()
+    local part = Instance.new("ParticleEmitter", workspace.Terrain)
+    part.Texture = "rbxassetid://518186179"
+    part.Rate = 500
+    part.Lifetime = NumberRange.new(2)
+    part.Speed = NumberRange.new(20)
+    part.VelocitySpread = 180
+    Notif("Chuva ativada")
+end)
+
+CreateButton(worldTab, "Tornado Visual", function()
+    for i = 1, 50 do
+        local p = Instance.new("Part", workspace)
+        p.Anchored = true
+        p.CanCollide = false
+        p.Size = Vector3.new(1, 1, 1)
+        p.Position = Vector3.new(math.sin(i)*5, i, math.cos(i)*5)
+        p.Color = Color3.fromRGB(255,255,255)
+    end
+    Notif("Tornado visual criado")
+end)
+
+CreateButton(worldTab, "Limpar Partículas", function()
+    for _,v in pairs(workspace:GetDescendants()) do
+        if v:IsA("ParticleEmitter") then
+            v:Destroy()
+        end
+    end
+    Notif("Partículas removidas")
+end)
+
+-- === Aba Audio Tools ===
+local audioTab = CreateTab("Audio Tools")
+
+CreateTextBox(audioTab, "ID da Música", "12345678", function(id)
+    _G.audioId = id
+end)
+
+CreateButton(audioTab, "Tocar Música", function()
+    local s = Instance.new("Sound", workspace)
+    s.SoundId = "rbxassetid://".._G.audioId
+    s.Volume = 5
+    s:Play()
+    Notif("Música tocando")
+end)
+
+CreateButton(audioTab, "Parar Todos os Sons", function()
+    for _,s in pairs(workspace:GetDescendants()) do
+        if s:IsA("Sound") then
+            s:Stop()
+        end
+    end
+    Notif("Todos os sons pararam")
+end)
+
+-- === Aba Safe Tools ===
+local safeTab = CreateTab("Safe Tools")
+
+CreateButton(safeTab, "GodMode (tentativa)", function()
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.Name = "H_U_M"
+        Notif("GodMode tentado (depende do jogo)")
+    end
+end)
+
+CreateButton(safeTab, "Ancorar no lugar", function()
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.Anchored = true
+        Notif("Ancorado")
+    end
+end)
+
+CreateButton(safeTab, "Desancorar", function()
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.Anchored = false
+        Notif("Desancorado")
+    end
+end)
+
+-- === Aba Teleport Utils ===
+local tpTab = CreateTab("Teleport Utils")
+
+CreateTextBox(tpTab, "Coordenada X,Y,Z", "0,10,0", function(txt)
+    _G.tpPos = txt
+end)
+
+CreateButton(tpTab, "Teleportar para posição", function()
+    local split = string.split(_G.tpPos, ",")
+    local x = tonumber(split[1])
+    local y = tonumber(split[2])
+    local z = tonumber(split[3])
+    if x and y and z then
+        player.Character:MoveTo(Vector3.new(x,y,z))
+        Notif("Teleportado para "..x..","..y..","..z)
+    else
+        Notif("Coordenadas inválidas")
+    end
+end)
+
+CreateButton(tpTab, "Teleportar para cima", function()
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local pos = player.Character.HumanoidRootPart.Position
+        player.Character:SetPrimaryPartCFrame(CFrame.new(pos + Vector3.new(0,50,0)))
+    end
+    Notif("Teleportado para cima")
+end)
+
+-- === Aba Animations ===
+local animTab = CreateTab("Animations")
+
+CreateButton(animTab, "Dança", function()
+    local anim = Instance.new("Animation")
+    anim.AnimationId = "rbxassetid://33796059"
+    local hum = player.Character:FindFirstChild("Humanoid")
+    if hum then hum:LoadAnimation(anim):Play() end
+    Notif("Dança ativada")
+end)
+
+CreateButton(animTab, "Levantar braço", function()
+    local anim = Instance.new("Animation")
+    anim.AnimationId = "rbxassetid://180435571"
+    local hum = player.Character:FindFirstChild("Humanoid")
+    if hum then hum:LoadAnimation(anim):Play() end
+    Notif("Animação ativada")
+end)
+
+CreateButton(animTab, "Loopar animação", function()
+    local anim = Instance.new("Animation")
+    anim.AnimationId = "rbxassetid://507771019"
+    local hum = player.Character:FindFirstChild("Humanoid")
+    if hum then
+        local track = hum:LoadAnimation(anim)
+        track.Looped = true
+        track:Play()
+    end
+    Notif("Animação em loop")
+end)
+
+-- === Aba Build Tools ===
+local buildTab = CreateTab("Build Tools")
+
+CreateButton(buildTab, "Criar bloco", function()
+    local part = Instance.new("Part", workspace)
+    part.Size = Vector3.new(5,1,5)
+    part.Position = player.Character.HumanoidRootPart.Position + Vector3.new(0,-3,0)
+    part.Anchored = true
+    part.BrickColor = BrickColor.Random()
+    Notif("Bloco criado")
+end)
+
+CreateButton(buildTab, "Criar parede", function()
+    for i = 1, 5 do
+        local part = Instance.new("Part", workspace)
+        part.Size = Vector3.new(4,4,1)
+        part.Position = player.Character.HumanoidRootPart.Position + Vector3.new(i*5, 2, 0)
+        part.Anchored = true
+        part.Color = Color3.fromRGB(100,100,100)
+    end
+    Notif("Parede construída")
+end)
+
+CreateButton(buildTab, "Remover blocos", function()
+    for _,v in pairs(workspace:GetChildren()) do
+        if v:IsA("Part") and v.BrickColor == BrickColor.Gray() then
+            v:Destroy()
+        end
+    end
+    Notif("Blocos removidos")
+end)
+
+-- === Aba NPC Control ===
+local npcTab = CreateTab("NPC Control")
+
+CreateButton(npcTab, "Fazer NPCs Andarem", function()
+    for _,npc in pairs(workspace:GetChildren()) do
+        if npc:FindFirstChildOfClass("Humanoid") and npc ~= player.Character then
+            npc:MoveTo(npc.Position + Vector3.new(math.random(-10,10),0,math.random(-10,10)))
+        end
+    end
+    Notif("NPCs em movimento")
+end)
+
+CreateButton(npcTab, "Remover NPCs", function()
+    for _,npc in pairs(workspace:GetChildren()) do
+        if npc:FindFirstChildOfClass("Humanoid") and npc ~= player.Character then
+            npc:Destroy()
+        end
+    end
+    Notif("NPCs removidos")
+end)
+
+CreateButton(npcTab, "Congelar NPCs", function()
+    for _,npc in pairs(workspace:GetChildren()) do
+        if npc:FindFirstChild("HumanoidRootPart") and npc ~= player.Character then
+            npc.HumanoidRootPart.Anchored = true
+        end
+    end
+    Notif("NPCs congelados")
+end)
+
+-- === Aba Scripting Utils ===
+local scriptTab = CreateTab("Scripting Utils")
+
+CreateButton(scriptTab, "Executar require() oculto", function()
+    local moduleId = 6191659992 -- exemplo
+    require(moduleId).load(player.Name)
+    Notif("Require executado")
+end)
+
+CreateButton(scriptTab, "Listar Services", function()
+    for _,s in pairs(game:GetChildren()) do
+        print("Service:", s.ClassName)
+    end
+    Notif("Services listados")
+end)
+
+CreateButton(scriptTab, "Executar Script Custom", function()
+    loadstring("print('Executado script customizado!')")()
+    Notif("Script executado")
+end)
+-- === Aba Configurações ===
+local configTab = CreateTab("Configurações")
+
+-- Variável de cor do Hub
+local currentColor = Color3.fromRGB(255, 0, 0)
+
+-- Função para aplicar a cor em todo o Hub
+local function applyColor(color)
+	currentColor = color
+	title.TextColor3 = color
+	open.TextColor3 = color
+
+	frame.BackgroundColor3 = color:lerp(Color3.new(0, 0, 0), 0.85)
+	content.BackgroundColor3 = color:lerp(Color3.new(0, 0, 0), 0.8)
+
+	-- Aplica nas abas e botões
+	for _, tab in pairs(tabs) do
+		for _, item in pairs(tab:GetChildren()) do
+			if item:IsA("TextButton") then
+				item.BackgroundColor3 = color:lerp(Color3.new(0,0,0), 0.7)
+				item.TextColor3 = color
+			end
+		end
+	end
+
+	-- Aplica nos botões laterais de aba
+	for _, btn in pairs(tabButtons:GetChildren()) do
+		if btn:IsA("TextButton") then
+			btn.BackgroundColor3 = color:lerp(Color3.new(0,0,0), 0.75)
+			btn.TextColor3 = color
+		end
+	end
+
+	Notif("Cor alterada com sucesso!")
+end
+
+-- Botão para abrir painel de cores
+CreateButton(configTab, "Change Color", function()
+	local colorFrame = Instance.new("Frame", gui)
+	colorFrame.Size = UDim2.new(0, 300, 0, 200)
+	colorFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+	colorFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+	colorFrame.Name = "ColorPicker"
+	Instance.new("UICorner", colorFrame)
+
+	local closeBtn = Instance.new("TextButton", colorFrame)
+	closeBtn.Size = UDim2.new(0, 30, 0, 30)
+	closeBtn.Position = UDim2.new(1, -35, 0, 5)
+	closeBtn.Text = "X"
+	closeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	closeBtn.TextColor3 = Color3.new(1, 1, 1)
+	Instance.new("UICorner", closeBtn)
+	closeBtn.MouseButton1Click:Connect(function()
+		colorFrame:Destroy()
+	end)
+
+	local colors = {
+		Color3.fromRGB(255,0,0), Color3.fromRGB(0,255,0), Color3.fromRGB(0,0,255),
+		Color3.fromRGB(255,255,0), Color3.fromRGB(255,0,255), Color3.fromRGB(0,255,255),
+		Color3.fromRGB(255,255,255), Color3.fromRGB(0,0,0), Color3.fromRGB(128,0,128),
+		Color3.fromRGB(255,165,0), Color3.fromRGB(0,128,128)
+	}
+
+	for i, col in ipairs(colors) do
+		local btn = Instance.new("TextButton", colorFrame)
+		btn.Size = UDim2.new(0, 50, 0, 50)
+		btn.Position = UDim2.new(0, ((i-1)%5)*55 + 10, 0, math.floor((i-1)/5)*55 + 40)
+		btn.BackgroundColor3 = col
+		btn.Text = ""
+		Instance.new("UICorner", btn)
+
+		btn.MouseButton1Click:Connect(function()
+			applyColor(col)
+			colorFrame:Destroy()
+		end)
+	end
+end)
+
+-- Mostrar FPS e Ping
+local fpsLabel = Instance.new("TextLabel", configTab)
+fpsLabel.Size = UDim2.new(1, 0, 0, 35)
+fpsLabel.BackgroundColor3 = Color3.fromRGB(30,30,30)
+fpsLabel.TextColor3 = Color3.fromRGB(255,255,255)
+fpsLabel.TextScaled = true
+fpsLabel.Text = "FPS: ... | Ping: ..."
+Instance.new("UICorner", fpsLabel)
+
+-- Atualizador de FPS e Ping
+local frames = 0
+local last = tick()
+RunService.RenderStepped:Connect(function()
+	frames += 1
+	local now = tick()
+	if now - last >= 1 then
+		local fps = frames
+		frames = 0
+		last = now
+
+		local ping = "?"
+		if stats and stats().Network and stats().Network.ServerStatsItem then
+			local item = stats().Network.ServerStatsItem["Data Ping"]
+			if item then
+				ping = math.floor(item:GetValue()).."ms"
+			end
+		end
+
+		fpsLabel.Text = "FPS: "..fps.." | Ping: "..ping
+	end
+end)
+
+-- Restaurar padrão
+CreateButton(configTab, "Restaurar Layout", function()
+	applyColor(Color3.fromRGB(255,0,0))
+	walkspeed = 16
+	jumppower = 50
+	Lighting.ClockTime = 14
+	Notif("Hub restaurado para configuração padrão.")
+end)
