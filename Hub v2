@@ -1,1008 +1,297 @@
--- DataBreakerZ Menu Otimizado - By DogzinGhost_YT
-
--- Serviços
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local StarterGui = game:GetService("StarterGui")
-local Lighting = game:GetService("Lighting")
-local player = Players.LocalPlayer
-
--- Variáveis
-local noclip, infjump, clicktp, esp = false, false, false, false
-local walkspeed, jumppower = 16, 50
-local tabs, currentTab = {}, nil
-
--- GUI Base
-local gui = Instance.new("ScreenGui", player.PlayerGui)
-gui.Name = "DataBreakerZ"
-gui.ResetOnSpawn = false
-
-local open = Instance.new("TextButton", gui)
-open.Size = UDim2.new(0,50,0,50)
-open.Position = UDim2.new(0,20,0.5,-25)
-open.Text = "☰"
-open.BackgroundColor3 = Color3.fromRGB(30,30,30)
-open.TextColor3 = Color3.fromRGB(255,0,0)
-open.TextScaled = true
-Instance.new("UICorner", open)
-
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,500,0,400) -- mais largo para barra lateral + conteúdo
-frame.Position = UDim2.new(0.5,-250,0.5,-200)
-frame.BackgroundColor3 = Color3.fromRGB(15,15,15)
-frame.Visible = false
-frame.Active = true
-frame.Draggable = true
-Instance.new("UICorner", frame)
-
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1,0,0,35)
-title.BackgroundColor3 = Color3.fromRGB(0,0,0)
-title.Text = "DataBreakerZ Menu"
-title.TextColor3 = Color3.fromRGB(255,0,0)
-title.TextScaled = true
-title.Font = Enum.Font.SourceSansBold
-Instance.new("UICorner", title)
-
-local close = Instance.new("TextButton", frame)
-close.Size = UDim2.new(0,35,0,35)
-close.Position = UDim2.new(1,-40,0,0)
-close.BackgroundColor3 = Color3.fromRGB(30,30,30)
-close.Text = "X"
-close.TextColor3 = Color3.fromRGB(255,255,255)
-close.TextScaled = true
-close.Font = Enum.Font.SourceSansBold
-Instance.new("UICorner", close)
-
--- Barra lateral para botões das abas (agora rolável)
-local tabButtons = Instance.new("ScrollingFrame", frame)
-tabButtons.Size = UDim2.new(0, 110, 1, -35)
-tabButtons.Position = UDim2.new(0, 0, 0, 35)
-tabButtons.BackgroundColor3 = Color3.fromRGB(10,10,10)
-tabButtons.ScrollBarThickness = 6
-Instance.new("UICorner", tabButtons)
-
--- Conteúdo das abas (área principal)
-local content = Instance.new("Frame", frame)
-content.Size = UDim2.new(1, -110 - 20, 1, -90)
-content.Position = UDim2.new(0, 110 + 10, 0, 80)
-content.BackgroundColor3 = Color3.fromRGB(20,20,20)
-Instance.new("UICorner", content)
-
--- Função para criar abas
-local function CreateTab(name)
-    local btn = Instance.new("TextButton", tabButtons)
-    btn.Size = UDim2.new(1, -20, 0, 35)
-    btn.Position = UDim2.new(0, 10, 0, (#tabButtons:GetChildren() - 1) * 40)
-    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Text = name
-    btn.TextScaled = true
-    btn.Font = Enum.Font.SourceSansBold
-    Instance.new("UICorner", btn)
-
-    local tab = Instance.new("ScrollingFrame", content)
-    tab.Size = UDim2.new(1, 0, 1, 0)
-    tab.CanvasSize = UDim2.new(0, 0, 5, 0)
-    tab.ScrollBarThickness = 6
-    tab.BackgroundTransparency = 1
-    tab.Visible = false
-
-    local layout = Instance.new("UIListLayout", tab)
-    layout.Padding = UDim.new(0, 8)
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-
-    btn.MouseButton1Click:Connect(function()
-        if currentTab then currentTab.Visible = false end
-        tab.Visible = true
-        currentTab = tab
-    end)
-
-    tabs[name] = tab
-    return tab
-end
-
--- Função para criar botões dentro das abas
-local function CreateButton(tab, text, callback)
-    local btn = Instance.new("TextButton", tab)
-    btn.Size = UDim2.new(1, 0, 0, 35)
-    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Text = text
-    btn.TextScaled = true
-    btn.Font = Enum.Font.SourceSansBold
-    btn.MouseButton1Click:Connect(callback)
-    Instance.new("UICorner", btn)
-end
-
--- Função para criar TextBox com label dentro das abas
-local function CreateTextBox(tab, labelText, defaultText, callback)
-    local holder = Instance.new("Frame", tab)
-    holder.Size = UDim2.new(1, 0, 0, 35)
-    holder.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    Instance.new("UICorner", holder)
-
-    local label = Instance.new("TextLabel", holder)
-    label.Size = UDim2.new(0.6, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = labelText
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.TextScaled = true
-    label.Font = Enum.Font.SourceSansBold
-
-    local box = Instance.new("TextBox", holder)
-    box.Size = UDim2.new(0.35, 0, 0.8, 0)
-    box.Position = UDim2.new(0.62, 0, 0.1, 0)
-    box.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    box.Text = defaultText
-    box.TextColor3 = Color3.fromRGB(255, 255, 255)
-    box.TextScaled = true
-    box.Font = Enum.Font.SourceSansBold
-    Instance.new("UICorner", box)
-
-    box.FocusLost:Connect(function()
-        local val = tonumber(box.Text)
-        if val then
-            callback(val)
-        else
-            callback(tonumber(defaultText))
-        end
-    end)
-end
-
--- Criação das abas
-local tabNames = {
-    "Main", "Player", "Visual", "Movement", "Utility",
-    "Sky & Atmosphere", "Trolling", "Crash", "Spawn/Entities", "Fun Extra"
-}
-for _, name in ipairs(tabNames) do
-    CreateTab(name)
-end
-tabs["Main"].Visible = true
-currentTab = tabs["Main"]
-
--- Sistema Open/Close
-open.MouseButton1Click:Connect(function() frame.Visible = not frame.Visible end)
-close.MouseButton1Click:Connect(function() frame.Visible = false end)
-
--- Notificação auxiliar
-local function Notif(text)
-    StarterGui:SetCore("SendNotification", {Title = "DataBreakerZ", Text = text, Duration = 3})
-end
-
--- ... (o restante do script com as funções que você já tem) ...
-
--- Mensagem de carregamento
-Notif("DataBreakerZ Menu Carregado!")
--- Funções principais do cheat abaixo
-
--- Noclip
-RunService.Stepped:Connect(function()
-    if noclip and player.Character then
-        for _,v in pairs(player.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
-        end
-    end
-end)
-
--- Infinite Jump
-UserInputService.JumpRequest:Connect(function()
-    if infjump and player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-    end
-end)
-
--- Click TP
-local mouse = player:GetMouse()
-mouse.Button1Down:Connect(function()
-    if clicktp and mouse.Target and player.Character then
-        player.Character.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p + Vector3.new(0,3,0))
-    end
-end)
-
--- Atualiza WalkSpeed e JumpPower
-RunService.RenderStepped:Connect(function()
-    if player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid.WalkSpeed = walkspeed
-        player.Character.Humanoid.JumpPower = jumppower
-    end
-end)
-
--- === Aba Main ===
-local main = tabs["Main"]
-CreateButton(main, "Toggle Noclip", function()
-    noclip = not noclip
-    Notif("Noclip "..(noclip and "ativado" or "desativado"))
-end)
-CreateButton(main, "Toggle Infinite Jump", function()
-    infjump = not infjump
-    Notif("Infinite Jump "..(infjump and "ativado" or "desativado"))
-end)
-CreateButton(main, "Toggle Click TP", function()
-    clicktp = not clicktp
-    Notif("Click TP "..(clicktp and "ativado" or "desativado"))
-end)
-
-CreateTextBox(main, "WalkSpeed", tostring(walkspeed), function(val)
-    walkspeed = val
-    Notif("WalkSpeed: "..val)
-end)
-CreateTextBox(main, "JumpPower", tostring(jumppower), function(val)
-    jumppower = val
-    Notif("JumpPower: "..val)
-end)
-
--- === Aba Player ===
-local playerTab = tabs["Player"]
-CreateButton(playerTab, "Reset Character", function()
-    if player.Character then player.Character:BreakJoints() end
-end)
-CreateButton(playerTab, "Expand Hitbox", function()
-    if player.Character then
-        for _,v in pairs(player.Character:GetChildren()) do
-            if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
-                v.Size = v.Size * 2
-            end
-        end
-    end
-end)
-CreateButton(playerTab, "Shrink Hitbox", function()
-    if player.Character then
-        for _,v in pairs(player.Character:GetChildren()) do
-            if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
-                v.Size = v.Size / 2
-            end
-        end
-    end
-end)
-
--- === Aba Visual ===
-local visual = tabs["Visual"]
-CreateButton(visual, "Toggle ESP", function()
-    esp = not esp
-    for _,plr in pairs(Players:GetPlayers()) do
-        if plr ~= player and plr.Character then
-            if esp then
-                if not plr.Character:FindFirstChild("ESP_DZ") then
-                    local h = Instance.new("Highlight", plr.Character)
-                    h.Name = "ESP_DZ"
-                    h.FillColor = Color3.fromRGB(255,0,0)
-                    h.OutlineColor = Color3.fromRGB(255,255,255)
-                end
-            else
-                local h = plr.Character:FindFirstChild("ESP_DZ")
-                if h then h:Destroy() end
-            end
-        end
-    end
-    Notif("ESP "..(esp and "ativado" or "desativado"))
-end)
-CreateButton(visual, "Toggle Day/Night", function()
-    Lighting.ClockTime = Lighting.ClockTime >= 12 and 0 or 12
-    Notif("Hora do dia alternada")
-end)
-CreateButton(visual, "Remove Fog", function()
-    Lighting.FogEnd = 100000
-    Lighting.FogStart = 0
-    Notif("Névoa removida")
-end)
-
--- === Aba Movement ===
-local movement = tabs["Movement"]
-CreateButton(movement, "Super Jump", function()
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.Velocity = Vector3.new(0, jumppower*3, 0)
-    end
-end)
-CreateButton(movement, "Reset WalkSpeed", function()
-    walkspeed = 16
-    Notif("WalkSpeed resetado")
-end)
-CreateButton(movement, "Reset JumpPower", function()
-    jumppower = 50
-    Notif("JumpPower resetado")
-end)
-
--- === Aba Utility ===
-local utility = tabs["Utility"]
-CreateButton(utility, "Open Chat", function()
-    StarterGui:SetCore("ChatMakeSystemMessage",{Text="DataBreakerZ Activated!", Color=Color3.fromRGB(255,0,0)})
-end)
-CreateButton(utility, "Copy Discord Link", function()
-    setclipboard("https://discord.gg/seulink") -- só funciona em exploits que permitem setclipboard
-    Notif("Link copiado para a área de transferência")
-end)
-CreateButton(utility, "Clear Workspace Debris", function()
-    for _, obj in pairs(workspace:GetChildren()) do
-        if obj:IsA("BasePart") and obj.Name == "Debris" then
-            obj:Destroy()
-        end
-    end
-    Notif("Debris removido")
-end)
-
--- === Aba Sky & Atmosphere ===
-local sky = tabs["Sky & Atmosphere"]
-CreateButton(sky, "Clear Sky", function()
-    local skybox = workspace:FindFirstChildOfClass("Sky")
-    if skybox then skybox:Destroy() end
-    Notif("Céu limpo")
-end)
-CreateButton(sky, "Restore Sky", function()
-    local sky = Instance.new("Sky", workspace)
-    sky.SkyboxBk = "http://www.roblox.com/asset/?id=375862093"
-    sky.SkyboxDn = "http://www.roblox.com/asset/?id=375862112"
-    sky.SkyboxFt = "http://www.roblox.com/asset/?id=375862103"
-    sky.SkyboxLf = "http://www.roblox.com/asset/?id=375862094"
-    sky.SkyboxRt = "http://www.roblox.com/asset/?id=375862102"
-    sky.SunAngularSize = 14
-    Notif("Céu restaurado")
-end)
-CreateTextBox(sky, "Set ClockTime", tostring(Lighting.ClockTime), function(val)
-    Lighting.ClockTime = val
-    Notif("Hora definida para "..val)
-end)
-
--- === Aba Trolling ===
-local trolling = tabs["Trolling"]
-CreateButton(trolling, "Black Screen (10s)", function()
-    local blackGui = Instance.new("ScreenGui", player.PlayerGui)
-    blackGui.Name = "BlackScreen"
-    local blackFrame = Instance.new("Frame", blackGui)
-    blackFrame.Size = UDim2.new(1,0,1,0)
-    blackFrame.BackgroundColor3 = Color3.new(0,0,0)
-    task.delay(10, function() blackGui:Destroy() end)
-    Notif("Tela preta ativada por 10 segundos")
-end)
-CreateButton(trolling, "Invert Controls (5s)", function()
-    local char = player.Character
-    if not char then return end
-    local hum = char:FindFirstChild("Humanoid")
-    if not hum then return end
-    local origWalkSpeed = hum.WalkSpeed
-    hum.WalkSpeed = -origWalkSpeed
-    task.delay(5, function() if hum then hum.WalkSpeed = origWalkSpeed end end)
-    Notif("Controles invertidos por 5 segundos")
-end)
-CreateButton(trolling, "Random Teleport", function()
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local randomPos = Vector3.new(math.random(-500,500),50,math.random(-500,500))
-        player.Character.HumanoidRootPart.CFrame = CFrame.new(randomPos)
-    end
-    Notif("Teleporte aleatório executado")
-end)
-
--- === Aba Crash ===
-local crash = tabs["Crash"]
-CreateButton(crash, "Crash Server (Lag)", function()
-    for i=1,50 do
-        local part = Instance.new("Part", workspace)
-        part.Anchored = true
-        part.Size = Vector3.new(100,100,100)
-        part.Position = Vector3.new(math.random(-500,500),100,math.random(-500,500))
-    end
-    Notif("Servidor lagado (crash) temporariamente")
-end)
-CreateButton(crash, "Clear Crash Parts", function()
-    for _, part in pairs(workspace:GetChildren()) do
-        if part:IsA("Part") and part.Size == Vector3.new(100,100,100) then
-            part:Destroy()
-        end
-    end
-    Notif("Partes do crash removidas")
-end)
-CreateButton(crash, "Flood Chat", function()
-    for i=1,10 do
-        StarterGui:SetCore("ChatMakeSystemMessage", {Text="DataBreakerZ Flood!", Color=Color3.fromRGB(255,0,0)})
-    end
-    Notif("Flood de chat executado")
-end)
-
--- === Aba Spawn/Entities ===
-local spawn = tabs["Spawn/Entities"]
-CreateButton(spawn, "Spawn Dummy", function()
-    local dummy = Instance.new("Part", workspace)
-    dummy.Size = Vector3.new(2,5,1)
-    dummy.Position = player.Character and player.Character.HumanoidRootPart.Position + Vector3.new(0,0,5) or Vector3.new(0,5,0)
-    dummy.Anchored = true
-    dummy.BrickColor = BrickColor.new("Bright red")
-    dummy.Name = "Dummy"
-    Notif("Dummy spawnado")
-end)
-CreateButton(spawn, "Remove Dummies", function()
-    for _, obj in pairs(workspace:GetChildren()) do
-        if obj.Name == "Dummy" then
-            obj:Destroy()
-        end
-    end
-    Notif("Dummies removidos")
-end)
-CreateButton(spawn, "Spawn Invisible Part", function()
-    local part = Instance.new("Part", workspace)
-    part.Size = Vector3.new(5,5,5)
-    part.Position = player.Character and player.Character.HumanoidRootPart.Position + Vector3.new(0,5,0) or Vector3.new(0,5,0)
-    part.Anchored = true
-    part.Transparency = 1
-    part.CanCollide = false
-    part.Name = "InvisiblePart"
-    Notif("Parte invisível spawnada")
-end)
-
--- === Aba Fun Extra ===
-local fun = tabs["Fun Extra"]
-CreateButton(fun, "Spin Character", function()
-    local char = player.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    spawn(function()
-        for i = 1, 360, 15 do
-            if not char or not char:FindFirstChild("HumanoidRootPart") then break end
-            char.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(15), 0)
-            wait(0.05)
-        end
-    end)
-    Notif("Giro ativado")
-end)
-CreateButton(fun, "Toggle Sit", function()
-    local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-    if hum then
-        hum.Sit = not hum.Sit
-        Notif("Sentar toggled")
-    end
-end)
-CreateButton(fun, "Fake Chat Message", function()
-    StarterGui:SetCore("ChatMakeSystemMessage",{Text="DataBreakerZ é o melhor exploit!", Color=Color3.fromRGB(255,0,0)})
-    Notif("Mensagem falsa enviada no chat")
-end)
-
--- Mensagem
--- === Aba Remains ===
-local remains = CreateTab("Remains")
-
--- 1. Aimbot por nome (corrigido)
-CreateTextBox(remains, "Aimbot (nome do alvo)", "Jogador", function(nome)
-    local aiming = true
-    Notif("Aimbot ativado no jogador: "..nome)
-
-    local conn
-    conn = RunService.RenderStepped:Connect(function()
-        if not aiming then
-            if conn then conn:Disconnect() end
-            return
-        end
-        for _, plr in pairs(Players:GetPlayers()) do
-            if plr.Name:lower():sub(1, #nome) == nome:lower() then
-                if plr.Character and plr.Character:FindFirstChild("Head") then
-                    local head = plr.Character.Head
-                    workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, head.Position)
-                end
-            end
-        end
-    end)
-
-    CreateButton(remains, "Desligar Aimbot", function()
-        aiming = false
-        Notif("Aimbot desligado")
-    end)
-end)
-
--- 2. Teleporte com Tool personalizada (teleporta onde clicar)
-CreateButton(remains, "Receber Tool de Teleporte", function()
-    if player.Backpack:FindFirstChild("TeleportTool") then
-        Notif("Você já tem a Tool de Teleporte")
-        return
-    end
-
-    local tool = Instance.new("Tool")
-    tool.Name = "TeleportTool"
-    tool.RequiresHandle = false
-    tool.CanBeDropped = true
-
-    local equipped = false
-    local conn
-
-    tool.Equipped:Connect(function(mouse)
-        equipped = true
-        Notif("Clique no mapa para teleportar")
-        conn = mouse.Button1Down:Connect(function()
-            if equipped and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local pos = mouse.Hit.Position
-                player.Character.HumanoidRootPart.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0))
-            end
-        end)
-    end)
-
-    tool.Unequipped:Connect(function()
-        equipped = false
-        if conn then conn:Disconnect() end
-    end)
-
-    tool.Parent = player.Backpack
-    Notif("Tool de Teleporte adicionada à mochila")
-end)
-
--- 3. Visualizar visão de outro jogador
-CreateTextBox(remains, "Ver visão de (nome)", "Jogador", function(nome)
-    local target = Players:FindFirstChild(nome)
-    if target and target.Character and target.Character:FindFirstChild("Head") then
-        local cam = workspace.CurrentCamera
-        local originalSubject = cam.CameraSubject
-        cam.CameraSubject = target.Character:FindFirstChild("Humanoid") or target.Character:FindFirstChild("Head")
-        Notif("Agora vendo a visão de "..nome)
-
-        local sairBtn = Instance.new("TextButton", gui)
-        sairBtn.Size = UDim2.new(0,100,0,30)
-        sairBtn.Position = UDim2.new(0.5,-50,1,-40)
-        sairBtn.BackgroundColor3 = Color3.fromRGB(255,0,0)
-        sairBtn.Text = "Sair Visão"
-        sairBtn.TextColor3 = Color3.new(1,1,1)
-        sairBtn.TextScaled = true
-        sairBtn.Font = Enum.Font.SourceSansBold
-        Instance.new("UICorner", sairBtn)
-
-        sairBtn.MouseButton1Click:Connect(function()
-            cam.CameraSubject = originalSubject
-            sairBtn:Destroy()
-            Notif("Você voltou para sua visão")
-        end)
-    else
-        Notif("Jogador não encontrado ou sem personagem")
-    end
-end)
--- === Aba Scripts ===
-local scriptsTab = CreateTab("Scripts")
-
--- 1. Style change
-CreateButton(scriptsTab, "Style change", function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/XZuuyaX/CustomStyleChanger/main/main.lua",true))()
-    Notif("Style changer executado")
-end)
-
--- 2. Blue lock
-CreateButton(scriptsTab, "Blue lock", function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/selciawashere/screepts/refs/heads/main/BLRTBDMOBILEKEYSYS",true))()
-    Notif("Blue Lock script executado")
-end)
--- === Aba BrookHaven ===
-local brookTab = CreateTab("BrookHaven")
-local flingTarget = ""
-
--- TextBox para digitar o nome do jogador
-CreateTextBox(brookTab, "Nome do alvo (Fling)", "Jogador", function(nome)
-    flingTarget = nome
-end)
-
--- Botão Fling
-CreateButton(brookTab, "Fling", function()
-    local target = nil
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr.Name:lower():sub(1, #flingTarget) == flingTarget:lower() then
-            target = plr
-            break
-        end
-    end
-
-    if not target or not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then
-        Notif("Jogador não encontrado!")
-        return
-    end
-
-    -- Cria o caminhão (modelo básico)
-    local truck = Instance.new("Model", workspace)
-    truck.Name = "FlingTruck"
-
-    local base = Instance.new("Part", truck)
-    base.Size = Vector3.new(6, 2, 12)
-    base.Position = target.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
-    base.Anchored = false
-    base.BrickColor = BrickColor.new("Really black")
-    base.Name = "TruckBase"
-
-    local body = Instance.new("BodyGyro", base)
-    body.MaxTorque = Vector3.new(400000, 400000, 400000)
-    body.P = 500000
-
-    local velocity = Instance.new("BodyVelocity", base)
-    velocity.Velocity = Vector3.new(100, 0, 100)
-    velocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-
-    -- Teleporta para o jogador e fica girando
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = player.Character.HumanoidRootPart
-        hrp.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
-        hrp.Anchored = false
-        hrp.Parent = truck
-        hrp.CFrame = base.CFrame
-        hrp.Velocity = Vector3.new(0, 0, 0)
-    end
-
-    Notif("Fling iniciado contra "..flingTarget)
-end)
--- === Aba Explorer Tools ===
-local explorerTab = CreateTab("Explorer Tools")
-
-CreateButton(explorerTab, "Ver Objetos do Workspace", function()
-    for _, obj in pairs(workspace:GetChildren()) do
-        print("Objeto:", obj.Name, obj.ClassName)
-    end
-    Notif("Lista de objetos enviada ao console")
-end)
-
-CreateButton(explorerTab, "Ver RemoteEvents", function()
-    for _, v in pairs(game:GetDescendants()) do
-        if v:IsA("RemoteEvent") then
-            print("RemoteEvent:", v:GetFullName())
-        end
-    end
-    Notif("RemoteEvents listados no console")
-end)
-
-CreateButton(explorerTab, "Ver Scripts Locais", function()
-    for _, s in pairs(game:GetDescendants()) do
-        if s:IsA("LocalScript") then
-            print("LocalScript:", s:GetFullName())
-        end
-    end
-    Notif("LocalScripts listados")
-end)
-
--- === Aba Camera & View ===
-local cameraTab = CreateTab("Camera & View")
-
-CreateButton(cameraTab, "Travar Câmera em Primeira Pessoa", function()
-    player.CameraMode = Enum.CameraMode.LockFirstPerson
-    Notif("Câmera travada em 1ª pessoa")
-end)
-
-CreateButton(cameraTab, "Destravar Câmera", function()
-    player.CameraMode = Enum.CameraMode.Classic
-    Notif("Câmera destravada")
-end)
-
-CreateButton(cameraTab, "Camera Zoom Máximo", function()
-    player.CameraMaxZoomDistance = 1000
-    player.CameraMinZoomDistance = 0
-    Notif("Zoom ajustado")
-end)
-
--- === Aba World Effects ===
-local worldTab = CreateTab("World Effects")
-
-CreateButton(worldTab, "Chuva (Fake)", function()
-    local part = Instance.new("ParticleEmitter", workspace.Terrain)
-    part.Texture = "rbxassetid://518186179"
-    part.Rate = 500
-    part.Lifetime = NumberRange.new(2)
-    part.Speed = NumberRange.new(20)
-    part.VelocitySpread = 180
-    Notif("Chuva ativada")
-end)
-
-CreateButton(worldTab, "Tornado Visual", function()
-    for i = 1, 50 do
-        local p = Instance.new("Part", workspace)
-        p.Anchored = true
-        p.CanCollide = false
-        p.Size = Vector3.new(1, 1, 1)
-        p.Position = Vector3.new(math.sin(i)*5, i, math.cos(i)*5)
-        p.Color = Color3.fromRGB(255,255,255)
-    end
-    Notif("Tornado visual criado")
-end)
-
-CreateButton(worldTab, "Limpar Partículas", function()
-    for _,v in pairs(workspace:GetDescendants()) do
-        if v:IsA("ParticleEmitter") then
-            v:Destroy()
-        end
-    end
-    Notif("Partículas removidas")
-end)
-
--- === Aba Audio Tools ===
-local audioTab = CreateTab("Audio Tools")
-
-CreateTextBox(audioTab, "ID da Música", "12345678", function(id)
-    _G.audioId = id
-end)
-
-CreateButton(audioTab, "Tocar Música", function()
-    local s = Instance.new("Sound", workspace)
-    s.SoundId = "rbxassetid://".._G.audioId
-    s.Volume = 5
-    s:Play()
-    Notif("Música tocando")
-end)
-
-CreateButton(audioTab, "Parar Todos os Sons", function()
-    for _,s in pairs(workspace:GetDescendants()) do
-        if s:IsA("Sound") then
-            s:Stop()
-        end
-    end
-    Notif("Todos os sons pararam")
-end)
-
--- === Aba Safe Tools ===
-local safeTab = CreateTab("Safe Tools")
-
-CreateButton(safeTab, "GodMode (tentativa)", function()
-    if player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid.Name = "H_U_M"
-        Notif("GodMode tentado (depende do jogo)")
-    end
-end)
-
-CreateButton(safeTab, "Ancorar no lugar", function()
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.Anchored = true
-        Notif("Ancorado")
-    end
-end)
-
-CreateButton(safeTab, "Desancorar", function()
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.Anchored = false
-        Notif("Desancorado")
-    end
-end)
-
--- === Aba Teleport Utils ===
-local tpTab = CreateTab("Teleport Utils")
-
-CreateTextBox(tpTab, "Coordenada X,Y,Z", "0,10,0", function(txt)
-    _G.tpPos = txt
-end)
-
-CreateButton(tpTab, "Teleportar para posição", function()
-    local split = string.split(_G.tpPos, ",")
-    local x = tonumber(split[1])
-    local y = tonumber(split[2])
-    local z = tonumber(split[3])
-    if x and y and z then
-        player.Character:MoveTo(Vector3.new(x,y,z))
-        Notif("Teleportado para "..x..","..y..","..z)
-    else
-        Notif("Coordenadas inválidas")
-    end
-end)
-
-CreateButton(tpTab, "Teleportar para cima", function()
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local pos = player.Character.HumanoidRootPart.Position
-        player.Character:SetPrimaryPartCFrame(CFrame.new(pos + Vector3.new(0,50,0)))
-    end
-    Notif("Teleportado para cima")
-end)
-
--- === Aba Animations ===
-local animTab = CreateTab("Animations")
-
-CreateButton(animTab, "Dança", function()
-    local anim = Instance.new("Animation")
-    anim.AnimationId = "rbxassetid://33796059"
-    local hum = player.Character:FindFirstChild("Humanoid")
-    if hum then hum:LoadAnimation(anim):Play() end
-    Notif("Dança ativada")
-end)
-
-CreateButton(animTab, "Levantar braço", function()
-    local anim = Instance.new("Animation")
-    anim.AnimationId = "rbxassetid://180435571"
-    local hum = player.Character:FindFirstChild("Humanoid")
-    if hum then hum:LoadAnimation(anim):Play() end
-    Notif("Animação ativada")
-end)
-
-CreateButton(animTab, "Loopar animação", function()
-    local anim = Instance.new("Animation")
-    anim.AnimationId = "rbxassetid://507771019"
-    local hum = player.Character:FindFirstChild("Humanoid")
-    if hum then
-        local track = hum:LoadAnimation(anim)
-        track.Looped = true
-        track:Play()
-    end
-    Notif("Animação em loop")
-end)
-
--- === Aba Build Tools ===
-local buildTab = CreateTab("Build Tools")
-
-CreateButton(buildTab, "Criar bloco", function()
-    local part = Instance.new("Part", workspace)
-    part.Size = Vector3.new(5,1,5)
-    part.Position = player.Character.HumanoidRootPart.Position + Vector3.new(0,-3,0)
-    part.Anchored = true
-    part.BrickColor = BrickColor.Random()
-    Notif("Bloco criado")
-end)
-
-CreateButton(buildTab, "Criar parede", function()
-    for i = 1, 5 do
-        local part = Instance.new("Part", workspace)
-        part.Size = Vector3.new(4,4,1)
-        part.Position = player.Character.HumanoidRootPart.Position + Vector3.new(i*5, 2, 0)
-        part.Anchored = true
-        part.Color = Color3.fromRGB(100,100,100)
-    end
-    Notif("Parede construída")
-end)
-
-CreateButton(buildTab, "Remover blocos", function()
-    for _,v in pairs(workspace:GetChildren()) do
-        if v:IsA("Part") and v.BrickColor == BrickColor.Gray() then
-            v:Destroy()
-        end
-    end
-    Notif("Blocos removidos")
-end)
-
--- === Aba NPC Control ===
-local npcTab = CreateTab("NPC Control")
-
-CreateButton(npcTab, "Fazer NPCs Andarem", function()
-    for _,npc in pairs(workspace:GetChildren()) do
-        if npc:FindFirstChildOfClass("Humanoid") and npc ~= player.Character then
-            npc:MoveTo(npc.Position + Vector3.new(math.random(-10,10),0,math.random(-10,10)))
-        end
-    end
-    Notif("NPCs em movimento")
-end)
-
-CreateButton(npcTab, "Remover NPCs", function()
-    for _,npc in pairs(workspace:GetChildren()) do
-        if npc:FindFirstChildOfClass("Humanoid") and npc ~= player.Character then
-            npc:Destroy()
-        end
-    end
-    Notif("NPCs removidos")
-end)
-
-CreateButton(npcTab, "Congelar NPCs", function()
-    for _,npc in pairs(workspace:GetChildren()) do
-        if npc:FindFirstChild("HumanoidRootPart") and npc ~= player.Character then
-            npc.HumanoidRootPart.Anchored = true
-        end
-    end
-    Notif("NPCs congelados")
-end)
-
--- === Aba Scripting Utils ===
-local scriptTab = CreateTab("Scripting Utils")
-
-CreateButton(scriptTab, "Executar require() oculto", function()
-    local moduleId = 6191659992 -- exemplo
-    require(moduleId).load(player.Name)
-    Notif("Require executado")
-end)
-
-CreateButton(scriptTab, "Listar Services", function()
-    for _,s in pairs(game:GetChildren()) do
-        print("Service:", s.ClassName)
-    end
-    Notif("Services listados")
-end)
-
-CreateButton(scriptTab, "Executar Script Custom", function()
-    loadstring("print('Executado script customizado!')")()
-    Notif("Script executado")
-end)
--- === Aba Configurações ===
-local configTab = CreateTab("Configurações")
-
--- Variável de cor do Hub
-local currentColor = Color3.fromRGB(255, 0, 0)
-
--- Função para aplicar a cor em todo o Hub
-local function applyColor(color)
-	currentColor = color
-	title.TextColor3 = color
-	open.TextColor3 = color
-
-	frame.BackgroundColor3 = color:lerp(Color3.new(0, 0, 0), 0.85)
-	content.BackgroundColor3 = color:lerp(Color3.new(0, 0, 0), 0.8)
-
-	-- Aplica nas abas e botões
-	for _, tab in pairs(tabs) do
-		for _, item in pairs(tab:GetChildren()) do
-			if item:IsA("TextButton") then
-				item.BackgroundColor3 = color:lerp(Color3.new(0,0,0), 0.7)
-				item.TextColor3 = color
-			end
-		end
-	end
-
-	-- Aplica nos botões laterais de aba
-	for _, btn in pairs(tabButtons:GetChildren()) do
-		if btn:IsA("TextButton") then
-			btn.BackgroundColor3 = color:lerp(Color3.new(0,0,0), 0.75)
-			btn.TextColor3 = color
-		end
-	end
-
-	Notif("Cor alterada com sucesso!")
-end
-
--- Botão para abrir painel de cores
-CreateButton(configTab, "Change Color", function()
-	local colorFrame = Instance.new("Frame", gui)
-	colorFrame.Size = UDim2.new(0, 300, 0, 200)
-	colorFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
-	colorFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-	colorFrame.Name = "ColorPicker"
-	Instance.new("UICorner", colorFrame)
-
-	local closeBtn = Instance.new("TextButton", colorFrame)
-	closeBtn.Size = UDim2.new(0, 30, 0, 30)
-	closeBtn.Position = UDim2.new(1, -35, 0, 5)
-	closeBtn.Text = "X"
-	closeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-	closeBtn.TextColor3 = Color3.new(1, 1, 1)
-	Instance.new("UICorner", closeBtn)
-	closeBtn.MouseButton1Click:Connect(function()
-		colorFrame:Destroy()
-	end)
-
-	local colors = {
-		Color3.fromRGB(255,0,0), Color3.fromRGB(0,255,0), Color3.fromRGB(0,0,255),
-		Color3.fromRGB(255,255,0), Color3.fromRGB(255,0,255), Color3.fromRGB(0,255,255),
-		Color3.fromRGB(255,255,255), Color3.fromRGB(0,0,0), Color3.fromRGB(128,0,128),
-		Color3.fromRGB(255,165,0), Color3.fromRGB(0,128,128)
-	}
-
-	for i, col in ipairs(colors) do
-		local btn = Instance.new("TextButton", colorFrame)
-		btn.Size = UDim2.new(0, 50, 0, 50)
-		btn.Position = UDim2.new(0, ((i-1)%5)*55 + 10, 0, math.floor((i-1)/5)*55 + 40)
-		btn.BackgroundColor3 = col
-		btn.Text = ""
-		Instance.new("UICorner", btn)
-
-		btn.MouseButton1Click:Connect(function()
-			applyColor(col)
-			colorFrame:Destroy()
-		end)
-	end
-end)
-
--- Mostrar FPS e Ping
-local fpsLabel = Instance.new("TextLabel", configTab)
-fpsLabel.Size = UDim2.new(1, 0, 0, 35)
-fpsLabel.BackgroundColor3 = Color3.fromRGB(30,30,30)
-fpsLabel.TextColor3 = Color3.fromRGB(255,255,255)
-fpsLabel.TextScaled = true
-fpsLabel.Text = "FPS: ... | Ping: ..."
-Instance.new("UICorner", fpsLabel)
-
--- Atualizador de FPS e Ping
-local frames = 0
-local last = tick()
-RunService.RenderStepped:Connect(function()
-	frames += 1
-	local now = tick()
-	if now - last >= 1 then
-		local fps = frames
-		frames = 0
-		last = now
-
-		local ping = "?"
-		if stats and stats().Network and stats().Network.ServerStatsItem then
-			local item = stats().Network.ServerStatsItem["Data Ping"]
-			if item then
-				ping = math.floor(item:GetValue()).."ms"
-			end
-		end
-
-		fpsLabel.Text = "FPS: "..fps.." | Ping: "..ping
-	end
-end)
-
--- Restaurar padrão
-CreateButton(configTab, "Restaurar Layout", function()
-	applyColor(Color3.fromRGB(255,0,0))
-	walkspeed = 16
-	jumppower = 50
-	Lighting.ClockTime = 14
-	Notif("Hub restaurado para configuração padrão.")
-end)
+-- Gui to Lua
+-- Version: 1.0
+-- Gui Name: junko Hub Vip
+-- Game: Brockaven
+
+game.StarterGui:SetCore("SendNotification", {
+Title = "DataBreakerZ";
+Text = "Script made by Juanko Mods VIP"; -- what the text says (ofc)
+Duration = 10;
+})
+
+-- Instances:
+
+local ScreenGui = Instance.new("ScreenGui")
+local Main = Instance.new("Frame")
+local TextLabel = Instance.new("TextLabel")
+local TextButton = Instance.new("TextButton")
+local TextButton_2 = Instance.new("TextButton")
+local TextButton_3 = Instance.new("TextButton")
+local TextButton_4 = Instance.new("TextButton")
+local TextButton_5 = Instance.new("TextButton")
+local TextButton_6 = Instance.new("TextButton")
+local TextButton_7 = Instance.new("TextButton")
+local TextButton_8 = Instance.new("TextButton")
+local TextButton_9 = Instance.new("TextButton")
+local TextButton_10 = Instance.new("TextButton")
+local TextButton_11 = Instance.new("TextButton")
+local TextButton_12 = Instance.new("TextButton")
+local TextButton_13 = Instance.new("TextButton")
+local TextButton_14 = Instance.new("TextButton")
+local TextButton_15 = Instance.new("TextButton")
+local TextButton_16 = Instance.new("TextButton")
+local TextLabel_2 = Instance.new("TextLabel")
+
+--Properties:
+
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+Main.Name = "Main"
+Main.Parent = ScreenGui
+Main.BackgroundColor3 = Color3.fromRGB(11, 11, 11)
+Main.BorderColor3 = Color3.fromRGB(255, 255, 255)
+Main.BorderSizePixel = 5
+Main.Position = UDim2.new(0.21171169, 0, 0.181818172, 0)
+Main.Size = UDim2.new(0, 383, 0, 237)
+Main.Active = true
+Main.Draggable = true
+
+TextLabel.Parent = Main
+TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.BorderSizePixel = 4
+TextLabel.Position = UDim2.new(-0.0652741492, 0, 0, 0)
+TextLabel.Size = UDim2.new(0, 429, 0, 41)
+TextLabel.Font = Enum.Font.PatrickHand
+TextLabel.Text = "Brockaven Hub 1.0"
+TextLabel.TextColor3 = Color3.fromRGB(225, 0, 3)
+TextLabel.TextScaled = true
+TextLabel.TextSize = 14.000
+TextLabel.TextWrapped = true
+
+TextButton.Parent = Main
+TextButton.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton.BorderSizePixel = 3
+TextButton.Position = UDim2.new(0.0208877288, 0, 0.23206751, 0)
+TextButton.Size = UDim2.new(0, 68, 0, 30)
+TextButton.Font = Enum.Font.PatrickHand
+TextButton.Text = "Legad Admin"
+TextButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton.TextScaled = true
+TextButton.TextSize = 14.000
+TextButton.TextWrapped = true
+TextButton.MouseButton1Down:connect(function()
+loadstring(game:HttpGet('https://raw.githubusercontent.com/leg1337/legadmv2/main/legadminv2.lua'))()
+end)
+TextButton_2.Parent = Main
+TextButton_2.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_2.BorderSizePixel = 3
+TextButton_2.Position = UDim2.new(0.263707578, 0, 0.23206751, 0)
+TextButton_2.Size = UDim2.new(0, 68, 0, 30)
+TextButton_2.Font = Enum.Font.PatrickHand
+TextButton_2.Text = "Fates Admin"
+TextButton_2.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_2.TextScaled = true
+TextButton_2.TextSize = 14.000
+TextButton_2.TextWrapped = true
+TextButton_2.MouseButton1Down:connect(function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/fatesc/fates-admin/main/main.lua"))();
+end)
+TextButton_3.Parent = Main
+TextButton_3.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_3.BorderSizePixel = 3
+TextButton_3.Position = UDim2.new(0.498694509, 0, 0.23206751, 0)
+TextButton_3.Size = UDim2.new(0, 68, 0, 30)
+TextButton_3.Font = Enum.Font.PatrickHand
+TextButton_3.Text = "Iv Admin"
+TextButton_3.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_3.TextScaled = true
+TextButton_3.TextSize = 14.000
+TextButton_3.TextWrapped = true
+TextButton_3.MouseButton1Down:connect(function()
+loadstring(game:HttpGet('https://raw.githubusercontent.com/BloodyBurns/Hexx/main/Iv%20Admin/Admin%202.lua'))()
+end)
+TextButton_4.Parent = Main
+TextButton_4.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_4.BorderSizePixel = 3
+TextButton_4.Position = UDim2.new(0.736292422, 0, 0.23206751, 0)
+TextButton_4.Size = UDim2.new(0, 68, 0, 30)
+TextButton_4.Font = Enum.Font.PatrickHand
+TextButton_4.Text = "Ghost Hub"
+TextButton_4.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_4.TextScaled = true
+TextButton_4.TextSize = 14.000
+TextButton_4.TextWrapped = true
+TextButton_4.MouseButton1Down:connect(function()
+loadstring(game:HttpGet('https://raw.githubusercontent.com/GhostPlayer352/Test4/main/GhostHub'))()
+end)
+TextButton_5.Parent = Main
+TextButton_5.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_5.BorderSizePixel = 3
+TextButton_5.Position = UDim2.new(0.736292422, 0, 0.434599161, 0)
+TextButton_5.Size = UDim2.new(0, 68, 0, 30)
+TextButton_5.Font = Enum.Font.PatrickHand
+TextButton_5.Text = "Ice Hub"
+TextButton_5.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_5.TextScaled = true
+TextButton_5.TextSize = 14.000
+TextButton_5.TextWrapped = true
+TextButton_5.MouseButton1Down:connect(function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/IceMael7/NewIceHub/main/Brookhaven"))()
+end)
+TextButton_6.Parent = Main
+TextButton_6.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_6.BorderSizePixel = 3
+TextButton_6.Position = UDim2.new(0.498694509, 0, 0.434599161, 0)
+TextButton_6.Size = UDim2.new(0, 68, 0, 30)
+TextButton_6.Font = Enum.Font.PatrickHand
+TextButton_6.Text = "Resizer"
+TextButton_6.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_6.TextScaled = true
+TextButton_6.TextSize = 14.000
+TextButton_6.TextWrapped = true
+TextButton_6.MouseButton1Down:connect(function()
+loadstring(game:HttpGet('https://raw.githubusercontent.com/DigitalityScripts/roblox-scripts/main/Leg Resize'))()
+--r15
+end)
+TextButton_7.Parent = Main
+TextButton_7.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_7.BorderSizePixel = 3
+TextButton_7.Position = UDim2.new(0.263707578, 0, 0.434599161, 0)
+TextButton_7.Size = UDim2.new(0, 68, 0, 30)
+TextButton_7.Font = Enum.Font.PatrickHand
+TextButton_7.Text = "Keyboard"
+TextButton_7.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_7.TextScaled = true
+TextButton_7.TextSize = 14.000
+TextButton_7.TextWrapped = true
+TextButton_7.MouseButton1Down:connect(function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/advxzivhsjjdhxhsidifvsh/mobkeyboard/main/main.txt", true))()
+end)
+TextButton_8.Parent = Main
+TextButton_8.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_8.BorderSizePixel = 3
+TextButton_8.Position = UDim2.new(0.0208877325, 0, 0.434599161, 0)
+TextButton_8.Size = UDim2.new(0, 68, 0, 30)
+TextButton_8.Font = Enum.Font.PatrickHand
+TextButton_8.Text = "Chat Troll"
+TextButton_8.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_8.TextScaled = true
+TextButton_8.TextSize = 14.000
+TextButton_8.TextWrapped = true
+TextButton_8.MouseButton1Down:connect(function()
+loadstring(game:HttpGet("https://pastebin.com/raw/vUsHbiTR"))()
+end)
+TextButton_9.Parent = Main
+TextButton_9.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_9.BorderSizePixel = 3
+TextButton_9.Position = UDim2.new(0.736292422, 0, 0.637130797, 0)
+TextButton_9.Size = UDim2.new(0, 68, 0, 30)
+TextButton_9.Font = Enum.Font.PatrickHand
+TextButton_9.Text = "Editor Size Tall"
+TextButton_9.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_9.TextScaled = true
+TextButton_9.TextSize = 14.000
+TextButton_9.TextWrapped = true
+TextButton_9.MouseButton1Down:connect(function()
+loadstring(game:HttpGet("https://pastebin.com/raw/gDmAuwhC",true))()
+end)
+TextButton_10.Parent = Main
+TextButton_10.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_10.BorderSizePixel = 3
+TextButton_10.Position = UDim2.new(0.498694509, 0, 0.637130797, 0)
+TextButton_10.Size = UDim2.new(0, 68, 0, 30)
+TextButton_10.Font = Enum.Font.PatrickHand
+TextButton_10.Text = "Fe hancho"
+TextButton_10.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_10.TextScaled = true
+TextButton_10.TextSize = 14.000
+TextButton_10.TextWrapped = true
+TextButton_10.MouseButton1Down:connect(function()
+loadstring(game:HttpGet("https://pastebin.com/raw/VWKwHNkD"))()
+end)
+TextButton_11.Parent = Main
+TextButton_11.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_11.BorderSizePixel = 3
+TextButton_11.Position = UDim2.new(0.263707578, 0, 0.637130797, 0)
+TextButton_11.Size = UDim2.new(0, 68, 0, 30)
+TextButton_11.Font = Enum.Font.PatrickHand
+TextButton_11.Text = "Universal Admin"
+TextButton_11.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_11.TextScaled = true
+TextButton_11.TextSize = 14.000
+TextButton_11.TextWrapped = true
+TextButton_11.MouseButton1Down:connect(function()
+loadstring(game:HttpGet('https://gist.githubusercontent.com/iiDk-the-actual/d14e473e35c851a3d6f93821f19287b8/raw/54fec68da51692cc96f5a987ab7cfbb83acb7856/SimpleAdmin%253C3U'))()
+end)
+TextButton_12.Parent = Main
+TextButton_12.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_12.BorderSizePixel = 3
+TextButton_12.Position = UDim2.new(0.0208877325, 0, 0.637130797, 0)
+TextButton_12.Size = UDim2.new(0, 68, 0, 30)
+TextButton_12.Font = Enum.Font.PatrickHand
+TextButton_12.Text = "Aura Destrozer 1"
+TextButton_12.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_12.TextScaled = true
+TextButton_12.TextSize = 14.000
+TextButton_12.TextWrapped = true
+TextButton_12.MouseButton1Down:connect(function()
+loadstring(game:HttpGet("https://pastebin.com/raw/f1Q3KhR7"))()
+end)
+TextButton_13.Parent = Main
+TextButton_13.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_13.BorderSizePixel = 3
+TextButton_13.Position = UDim2.new(0.0208877325, 0, 0.83544302, 0)
+TextButton_13.Size = UDim2.new(0, 68, 0, 30)
+TextButton_13.Font = Enum.Font.PatrickHand
+TextButton_13.Text = "Aura Destrozer 2"
+TextButton_13.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_13.TextScaled = true
+TextButton_13.TextSize = 14.000
+TextButton_13.TextWrapped = true
+TextButton_13.MouseButton1Down:Connect(function()
+loadstring(game:HttpGet("https://pastebin.com/raw/j9du6CyS"))()
+end)
+TextButton_14.Parent = Main
+TextButton_14.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_14.BorderSizePixel = 3
+TextButton_14.Position = UDim2.new(0.263707578, 0, 0.83544302, 0)
+TextButton_14.Size = UDim2.new(0, 68, 0, 30)
+TextButton_14.Font = Enum.Font.PatrickHand
+TextButton_14.Text = "Big Hat V1"
+TextButton_14.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_14.TextScaled = true
+TextButton_14.TextSize = 14.000
+TextButton_14.TextWrapped = true
+TextButton_14.MouseButton1Down:Connect(function()
+loadstring(game:HttpGet("https://pastebin.com/raw/i55hjHEE"))()
+end)
+TextButton_15.Parent = Main
+TextButton_15.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_15.BorderSizePixel = 3
+TextButton_15.Position = UDim2.new(0.498694539, 0, 0.83544302, 0)
+TextButton_15.Size = UDim2.new(0, 68, 0, 30)
+TextButton_15.Font = Enum.Font.PatrickHand
+TextButton_15.Text = "All Emotes R15"
+TextButton_15.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_15.TextScaled = true
+TextButton_15.TextSize = 14.000
+TextButton_15.TextWrapped = true
+TextButton_15.MouseButton1Down:Connect(function()
+loadstring(game:HttpGet('https://raw.githubusercontent.com/BloodyBurns/Hexx/main/R15%20Emotes/R15%20Emotes.lua'))()
+end)
+TextButton_16.Parent = Main
+TextButton_16.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+TextButton_16.BorderSizePixel = 3
+TextButton_16.Position = UDim2.new(0.736292481, 0, 0.83544302, 0)
+TextButton_16.Size = UDim2.new(0, 68, 0, 30)
+TextButton_16.Font = Enum.Font.PatrickHand
+TextButton_16.Text = "Abuser Game"
+TextButton_16.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton_16.TextScaled = true
+TextButton_16.TextSize = 14.000
+TextButton_16.TextWrapped = true
+TextButton_16.MouseButton1Down:Connect(function()
+loadstring(game:HttpGet("https://pastefy.ga/MtsA4gBU/raw"))()
+end)
+TextLabel_2.Parent = Main
+TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_2.BorderSizePixel = 4
+TextLabel_2.Position = UDim2.new(-0.0652741492, 0, 0.995780587, 0)
+TextLabel_2.Size = UDim2.new(0, 429, 0, 41)
+TextLabel_2.Font = Enum.Font.PatrickHand
+TextLabel_2.Text = "Script Made By JUANKO MODS"
+TextLabel_2.TextColor3 = Color3.fromRGB(225, 0, 3)
+TextLabel_2.TextScaled = true
+TextLabel_2.TextSize = 14.000
+TextLabel_2.TextWrapped = true
